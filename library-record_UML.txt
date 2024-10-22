@@ -1,0 +1,103 @@
+@startuml
+class Book {
+    set_title()
+    set_author()
+    set_year()
+    set_publisher()
+    set_num_available()
+    set_num_total()
+    set_publication_date()
+    get_title()
+    get_author()
+    get_year()
+    get_publisher()
+    get_num_copies()
+    get_num_available()
+    get_publication_date()
+    __str__()
+        id
+    title
+    author
+    year
+    publisher
+    num_total
+    num_available
+    publication_date
+    title
+    author
+    year
+    publisher
+    num_avaialble
+    num_total
+    num_available
+    publication_date
+    __init__()
+}
+class BookList {
+    add_book()
+    remove_book()
+    find_book()
+    get_total_books()
+    __iter__()
+        __init__()
+}
+class User {
+    set_username()
+    set_firstname()
+    set_lastname()
+    set_house_num()
+    set_street_name()
+    set_postcode()
+    set_email()
+    set_dob()
+    get_username()
+    get_firstname()
+    get_lastname()
+    get_house_num()
+    get_street_name()
+    get_postcode()
+    get_email()
+    get_dob()
+    __str__()
+        username
+    firstname
+    lastname
+    house_num
+    street_name
+    postcode
+    email
+    dob
+    username
+    firstname
+    lastname
+    house_num
+    street_name
+    postcode
+    email
+    dob
+    __init__()
+}
+class UserList {
+    add_user()
+    remove_user()
+    get_total_users()
+    get_user()
+    __iter__()
+        __init__()
+}
+class Loans {
+    borrow_book()
+    return_book()
+    count_borrowed_books()
+    print_overdue_books()
+    modify_book()
+    modify_user()
+    filter_selection()
+    init_library()
+    books_menu()
+    users_menu()
+    loans_menu()
+    main()
+        __init__()
+}
+@enduml
