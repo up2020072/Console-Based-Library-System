@@ -89,15 +89,56 @@ class Loans {
     borrow_book()
     return_book()
     count_borrowed_books()
+    print_borrowed_books()
     print_overdue_books()
-    modify_book()
-    modify_user()
-    filter_selection()
-    init_library()
-    books_menu()
-    users_menu()
-    loans_menu()
-    main()
         __init__()
+}
+class MainMenu {
+    display()
+    exit_program()
+        book_list
+    user_list
+    book_loans
+    __init__()
+}
+class BooksMenu {
+    display()
+    add_book_interface()
+    remove_book_interface()
+    find_book_interface()
+    modify_book_interface()
+    count_book_interface()
+        book_list
+    __init__()
+}
+class UsersMenu {
+    display()
+    add_user_interface()
+    unique_username()
+    remove_user_interface()
+    modify_user_interface()
+    show_user_details_interface()
+    count_user_interface()
+        user_list
+    __init__()
+}
+class LoansMenu {
+    display()
+    borrow_book_interface()
+    return_book_interface()
+    show_count_loans_interface()
+    show_overdue_loans_interface()
+    init_library()
+    main()
+    filter_selection()
+    search_users()
+    search_books()
+    get_input()
+    valid_date()
+    valid_email()
+        book_list
+    user_list
+    book_loans
+    __init__()
 }
 @enduml

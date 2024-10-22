@@ -243,7 +243,7 @@ class UserList():
         
         user_to_remove = filter_selection(users_to_remove, firstname)
 
-        print(f"Removed user '{user_to_remove.firstname} {user_to_remove.lastname}' with username: '{user_to_remove.username}'\n")
+        print(f"\nRemoved user '{user_to_remove.firstname} {user_to_remove.lastname}' with username: '{user_to_remove.username}'\n")
         del self.users[user_to_remove.username]
 
     def get_total_users(self):
@@ -269,11 +269,11 @@ class Loans():
                 if username not in self.loans:
                     self.loans[username] = []
                 # Set the due date to 14 days from today
-                due_date = datetime.datetime.now() + datetime.timedelta(days=14)
+                due_date = datetime.now() + timedelta(days=14)
                 loan_record = {'book': book, 'due_date': due_date}
                 self.loans[username].append(loan_record)
                 book.set_num_available(book.get_num_available() - 1)
-                print(f"\nBook '{book.title}' has been borrowed by user '{username}'. Due date is {due_date.strftime('%Y-%m-%d')}.")
+                print(f"\nBook '{book.title}' has been succesfully borrowed by user '{username.username}'. Due date is {due_date.strftime('%Y-%m-%d')}.")
             else:
                 print(f"\nNo available copies of '{book.title}' to borrow.")
         except Exception as e:
@@ -295,13 +295,24 @@ class Loans():
     def count_borrowed_books(self, username):
         """Count and return the total number of books a user is currently borrowing."""
         return len(self.loans.get(username, []))
+
+    def print_borrowed_books(self, username):
+        borrowed_loans = self.loans.get(username, [])
+        if not borrowed_loans:
+            print("\nYou have no borrowed books.")
+            return
+        
+        print("\nYour Borrowed Books:")
+        for i, loan_record in enumerate(borrowed_loans, 1):
+            book = loan_record['book']
+            due_date_str = loan_record['due_date'].strftime('%Y-%m-%d')
+            print(f"{i}. {book.title} (Due Date: {due_date_str})")
     
     def print_overdue_books(self, user_list):
         """Print out all overdue books along with the users’ details."""
         try:
-            print("\nOverdue Books:")
             overdue_found = False
-            current_date = datetime.datetime.now()
+            current_date = datetime.now()
             for username, loan_records in self.loans.items():
                 user = user_list.get_user(username)
                 if not user:
@@ -313,10 +324,11 @@ class Loans():
                         due_date_str = loan_record['due_date'].strftime('%Y-%m-%d')
                         print(f"Username: {user.get_username()}, First Name: {user.get_firstname()}, Book: '{book.title}', Due Date: {due_date_str}")
             if not overdue_found:
-                print("No overdue books.")
+                print("No overdue books.\n")
+                return
         except Exception as e:
             print(f"\nAn error occurred while printing overdue books: {e}")
-        return
+            return
 
 
 
@@ -371,22 +383,22 @@ class BooksMenu:
 
             choice = input("\nEnter your choice (1-6):\n").strip()
             if choice == '1':
-                self.add_book_interface(self.book_list)
+                self.add_book_interface()
             elif choice == '2':
-                self.remove_book_interface(self.book_list)
+                self.remove_book_interface()
             elif choice == '3':
-                self.find_book_interface(self.book_list)
+                self.find_book_interface()
             elif choice == '4':
-                self.modify_book_interface(self.book_list)
+                self.modify_book_interface()
             elif choice == '5':
-                self.count_book_interface(self.book_list)
+                self.count_book_interface()
             elif choice == '6':
                 print("\nReturning to the Main Menu.")
                 break
             else:
                 print("\nInvalid input, please select a valid option.")
     
-    def add_book_interface(book_list):
+    def add_book_interface(self, book_list):
         """Interface to add a new book to the system."""
         print("\nAdd a New Book")
 
@@ -403,126 +415,104 @@ class BooksMenu:
         print("\nNew book added successfully.")
 
 
-    def remove_book_interface(book_list):
-        while True:
-            print("\nRemove a Book")
-            for book_id, book in list(book_list): print(book)
-            book_name = input("Enter the name of the book you want to remove:\n").strip()
-            book = book_list.find_book(book_name)
-            if isinstance(book[0], str): 
-                print("no book found")
-                break
-            else:
-                book = filter_selection(book, book_name)
-                book_list.remove_book(book_name)
-                print("\nBook successfully removed.\n")
+    def remove_book_interface(self):
+        print("\nRemove a Book")
+        book = search_books(self.book_list, "Enter the name of the book you would like to remove:",  "No book found with title")
+        if book:
+            self.book_list.remove_book(book.title)
+            print("\nBook successfully removed.\n")
 
-    def find_book_interface(book_list): #this method could be used recursively in any other methods that perform a seach
-        while True:
-            print("\nSearch Books:")
-            book_name = input("\nEnter the data of the book you want to search:\n").strip()
-            #maybe mention this sorts by title, author, publisher, and publication date
-            book = book_list.find_book(book_name)
-            if isinstance(book[0], str): 
-                print("No book found!")
-                break
-            else:
-                book = filter_selection(book, book_name)
-                print(f'Book found!\n{book}')
+    def find_book_interface(self):
+        print("\nSearch Books:")
+        book = search_books(self.book_list, "Enter the title, author, publisher, or publication date of the book you want to search:",  "No book found with title")
+        if book: print(f'\nBook found!\n{book}')
 
-    def modify_book_interface(book_list):
+    def modify_book_interface(self):
         """Modify a book's details."""
-        while True:
-            #no exception handling needed here - EXPLAIN WHY
-            print("\nBook List:")
-            for book_id, book in list(book_list): print(book)
-            book_name = input("\nEnter the name of the book you want to modify:\n").strip()
-            book = book_list.find_book(book_name)
-            if isinstance(book[0], str): 
-                print("no book found")
-                break
-            else:
-                book = filter_selection(book, book_name)
-                print(f'\nCurrent details:\n{book}')
-                while True:
-                    print("\nWhat would you like to modify?")
-                    print("1. Title")
-                    print("2. Author")
-                    print("3. Year")
-                    print("4. Publisher")
-                    print("5. Number of Copies")
-                    print("6. Exit")
+        print("\nBook List:")
+        book = search_books(self.book_list, "Enter the name of the book you would like to modify:",  "No book found with title")
+        if book:
+            print(f'\nCurrent details:\n{book}')
+            while True:
+                print("\nWhat would you like to modify?")
+                print("1. Title")
+                print("2. Author")
+                print("3. Year")
+                print("4. Publisher")
+                print("5. Number of Copies")
+                print("6. Exit")
 
-                    try:
-                        choice = input("\nEnter your choice (1-6):\n")
+                try:
+                    choice = input("\nEnter your choice (1-6):\n")
 
-                        if choice == '1':
-                            new_title = input("\nEnter new title:\n") #whitespace shouldn't need stripping here as the class constructor already does this, same for inputs below
-                            book.set_title(new_title)
-                            break
-                        elif choice == '2':
-                            new_author = input("\nEnter new author:\n")
-                            book.set_author(new_author)
-                            break
-                        elif choice == '3':
-                            new_year = input("\nEnter new year:\n")
-                            book.set_year(new_year)
-                            break
-                        elif choice == '4':
-                            new_publisher = input("\nEnter new publisher:\n")
-                            book.set_publisher(new_publisher)
-                            break
-                        elif choice == '5':
-                            new_copies = (input("\nEnter new number of copies:\n"))
-                            book.set_num_copies(new_copies)
-                            break
-                        elif choice == '6':
-                            return
-                        else:
-                            print("Invalid choice. Please select again.\n")
-                    except ValueError as e:
-                        print(e)
-
+                    if choice == '1':
+                        new_title = input("\nEnter new title:\n") #whitespace shouldn't need stripping here as the class constructor already does this, same for inputs below
+                        book.set_title(new_title)
+                        break
+                    elif choice == '2':
+                        new_author = input("\nEnter new author:\n")
+                        book.set_author(new_author)
+                        break
+                    elif choice == '3':
+                        new_year = input("\nEnter new year:\n")
+                        book.set_year(new_year)
+                        break
+                    elif choice == '4':
+                        new_publisher = input("\nEnter new publisher:\n")
+                        book.set_publisher(new_publisher)
+                        break
+                    elif choice == '5':
+                        new_copies = (input("\nEnter new number of copies:\n"))
+                        book.set_num_copies(new_copies)
+                        break
+                    elif choice == '6':
+                        return
+                    else:
+                        print("Invalid choice. Please select again.\n")
+                except ValueError as e:
+                    print(e)
             print("\nBook details updated successfully.\n")
             print(f'New details:\n{book}')
             
-    def count_book_interface(book_list):
+    def count_book_interface(self, book_list):
         print("\nBook Count:")
         print(f'There are {book_list.get_total_books()} total books in the library system')
 
     
 class UsersMenu:
-    def __init__(self, book_list):
-        self.book_list = book_list
+    def __init__(self, user_list):
+        self.user_list = user_list
 
-    def users_menu(self):
+    def display(self):
         """Sub-menu for Users-related operations."""
         while True:
             print("\nUsers Menu:")
             print("1. Add a New User")
             print("2. Remove a User")
             print("3. Modify a User")
-            print("4. Display User Details")
+            print("4. Get User Details")
             print("5. Display User Count")
             print("6. Back to Main Menu")
 
             choice = input("\nEnter your choice (1-5):\n").strip()
             if choice == '1':
-                swlmodify_user(self.user_list)
+                self.add_user_interface(self.user_list)
             elif choice == '2':
-                add_new_user(self.user_list)
+                self.remove_user_interface(self.user_list)
             elif choice == '3':
-                remove_user_interface(self.user_list)
+                self.modify_user_interface(self.user_list)
             elif choice == '4':
-                display_all_users(self.user_list)
+                self.show_user_details_interface(self.user_list)
             elif choice == '5':
+                self.count_user_interface(self.user_list)
+            elif choice == '6':
                 print("\nReturning to the Main Menu.")
                 break
             else:
                 print("\nInvalid input, please select a valid option.")
     
         
-    def add_user_interface(user_list):
+    def add_user_interface(self, user_list):
         """Interface to add a new user to the system."""
         print("\nAdd a New User")
 
@@ -543,34 +533,16 @@ class UsersMenu:
         user_list.add_user(new_book)
         print("\nNew book added successfully.")
 
-    def remove_user_interface(user_list):
-        while True:
-            print("\nRemove a User")
-            for user_id, user in list(user_list): print(user)
-            username = input("\nEnter the username of the user you want to modify:\n").strip()
-            user = user_list.users.get(username) #there is a method specifically for this - MAKE SURE THIS USES IT
+    def remove_user_interface(self, user_list):
+        print("\nRemove a User")
+        username = input("\nEnter the first name of the user you want to remove:\n").strip()
+        user_list.remove_user(username)
 
-            if not user:
-                print(f"\nNo user found with username: {username}\n")
-                break
-            else:
-                user_list.remove_user(user_list)
-                print("\nUser successfully removed.\n")
-
-
-    def modify_user_interface(user_list):
+    def modify_user_interface(self, user_list):
         """Modify a user's details."""
-        while True:
-            #no exception handling needed here - EXPLAIN WHY
-            print("\nUser List:")
-            for user_id, user in list(user_list): print(user)
-            username = input("\nEnter the username of the user you want to modify:\n").strip()
-            user = user_list.users.get(username) #there is a method specifically for this - MAKE SURE THIS USES IT
-
-            if not user:
-                print(f"\nNo user found with username: {username}\n")
-                break
-            
+        print("\nUser List:")
+        user = search_users(self.user_list, "Enter the username of the user you would like to modify:",  "No user found with username")
+        if user:
             print(f'\nCurrent details:\n{user}')
             while True:
                 print("\nWhat would you like to modify?")
@@ -614,20 +586,14 @@ class UsersMenu:
             print("\nUser details updated successfully.\n")
             print(f'New details:\n{user}')
 
-    def show_user_details_interface(user_list):
-        while True:
-            print("\nSearch User Details:")
-            username = input("\nEnter the username of the user you want to search:\n").strip()
-            user = user_list.users.get(username) #there is a method specifically for this - MAKE SURE THIS USES IT
-            if not user:
-                print(f"\nNo user found with username: {username}\n")
-                break
-            else:
-                print(f'User found!\n{user}')
+    def show_user_details_interface(self, user_list):
+        print("\nSearch User Details:")
+        user = search_users(self.user_list, "Enter the username of the user you would like to display:",  "No user found with username", False)
+        if user: print(f'\nUser found!\n{user}')
         
-    def count_user_interface(user_list):
-        print("\User Count:")
-        print(f'There are {user_list.get_total_books()} total users in the library system')
+    def count_user_interface(self, user_list):
+        print("\nUser Count:")
+        print(f'There are {user_list.get_total_users()} total users in the library system')
 
 
 class LoansMenu:
@@ -652,7 +618,7 @@ class LoansMenu:
             elif choice == '2':
                 self.return_book_interface()
             elif choice == '3':
-                self.book_loans.show_user_loans_interface()
+                self.show_count_loans_interface()
             elif choice == '4':
                 self.show_overdue_loans_interface()
             elif choice == '5':
@@ -666,10 +632,10 @@ class LoansMenu:
         print("\nBorrow a Book")
 
         username = search_users(self.user_list)
-        book = search_books(self.book_list)
+        book = search_books(self.book_list, "Enter the name of the book you would like to borrow", "No book found with title")
 
-        self.book_loans.borrow_book(username, book)
-        print("\nBook borrowed successfully.")
+        if book: self.book_loans.borrow_book(username, book)
+        
 
     def return_book_interface(self):
         """Interface for returning a book."""
@@ -677,16 +643,9 @@ class LoansMenu:
 
         username = search_users(self.user_list)
 
-        borrowed_loans = self.book_loans.loans.get(username, [])
-        if not borrowed_loans:
-            print("\nYou have no borrowed books.")
-            return
+        self.book_loans.print_borrowed_books(username)
         
-        print("\nYour Borrowed Books:")
-        for i, loan_record in enumerate(borrowed_loans, 1):
-            book = loan_record['book']
-            due_date_str = loan_record['due_date'].strftime('%Y-%m-%d')
-            print(f"{i}. {book.title} (Due Date: {due_date_str})")
+        borrowed_loans = self.book_loans.loans.get(username, [])
 
         #this book selection functionality overlaps with the filter selection method - maybe they could be combined
         while True:
@@ -711,18 +670,16 @@ class LoansMenu:
         print("\nDisplay User's Borrowed Books")
 
         username = search_users(self.user_list)
+        self.book_loans.print_borrowed_books(username)
 
-        borrowed_loans = self.book_loans.loans.get(username, [])
-        if not borrowed_loans:
-            print("\nYou have no borrowed books.")
-            return
-        
         # Display the total number of borrowed books
         total_borrowed = self.book_loans.count_borrowed_books(username)
-        print(f"\n{username} is currently borrowing {total_borrowed} book(s).")
+        print(f"\n{username.username} is currently borrowing {total_borrowed} book(s).")
+
+        #for clarity this should also show the borrowed books
 
     def show_overdue_loans_interface(self):
-        print("\Overdue Books:")
+        print("\nOverdue Books:\n")
         self.book_loans.print_overdue_books(self.user_list)
         
 def init_library(): #this could be done with a json file
@@ -765,25 +722,26 @@ def filter_selection(items, search_term): #method to handle logic for search que
             except ValueError:
                 return "Invalid input. Please enter a valid number."
 
-def search_users(user_list):
+def search_users(user_list, prompt, error_message, show_users = True):
     while True:
-        for user_id, user in list(user_list): print(user)
-        username = input("\nEnter the username of the user you want to search:\n").strip()
+        if(show_users): 
+            for user_id, user in list(user_list): print(user)
+        username = input(f'\n{prompt}\n').strip()
         user = user_list.users.get(username)
 
         if not user:
-            print(f"\nNo user found with username: {username}\n")
+            print(f"\n{error_message} '{username}'")
             break
         else:
             return user
 
-def search_books(book_list):
+def search_books(book_list, prompt, error_message):
     while True:
         for book_id, book in list(book_list): print(book)
-        book_name = input("Enter the name of the book you want to search:\n").strip()
+        book_name = input(f'\n{prompt}\n').strip()
         books = book_list.find_book(book_name)
         if isinstance(books[0], str): 
-            print(f'\nNo book found with title: {book_name}')
+            print(f"\n{error_message} '{book_name}'")
             break
         else:
             book = filter_selection(books, book_name)
@@ -805,7 +763,7 @@ non_negative_int = lambda x: x.isdigit() and int(x) >= 0
     
 def valid_date(x):
     try:
-        datetime.datetime.strptime(x, '%Y-%m-%d')
+        datetime.strptime(x, '%Y-%m-%d')
         return True
     except ValueError:
         return False
