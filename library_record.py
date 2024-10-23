@@ -6,66 +6,47 @@ import re
 class Book():
     def __init__(self, title, author, year, publisher, num_total, publication_date):
         #for consistency this needs a docstring
-        #might be smart to use setter methods to automatically validate object construction
 
         self.id = uuid.uuid4()
-        self.title = title.strip()
-        self.author = author.strip()
+        self.title = title
+        self.author = author
         self.year = year
-        self.publisher = publisher.strip()
+        self.publisher = publisher
         self.num_total = num_total
         self.num_available = num_total
         self.publication_date = publication_date #this might need to be an actual datetime
         
     def set_title(self, title):
         """Set the title of the book."""
-        if not title:
-            raise ValueError("\nTitle cannot be empty.")
-        self.title = title.strip()
+        self.title = title
 
     def set_author(self, author):
         """Set the author of the book."""
-        if not author:
-            raise ValueError("\nAuthor cannot be empty.")
-        self.author = author.strip()
+        self.author = author
 
     def set_year(self, year):
         """Set the year of publication."""
-        if isinstance(year, int) and year > 0:
-            self.year = year
-        else:
-            raise ValueError("\nYear must be a positive integer.")
+        self.year = year
 
     def set_publisher(self, publisher):
         """Set the publisher of the book."""
-        if not publisher:
-            raise ValueError("\nPublisher cannot be empty.")
         self.publisher = publisher.strip()
 
     def set_num_available(self, num_available):
         """Set the number of available copies."""
-        if isinstance(num_available, int) and 0 <= num_available <= self.num_total: #this should be reworked
-            self.num_avaialble = num_available
-        else:
-            raise ValueError("\nNumber of copies must be a non-negative integer.")
+        if num_available <= self.num_total: self.num_avaialble = num_available
     
     def set_num_total(self, num_total):
         """Set the number of total copies."""
-        if isinstance(num_total, int) and num_total >= 0:
-            borrowed_copies = self.num_total - self.num_available
-            if num_total < borrowed_copies:
-                raise ValueError("\nCannot set total copies less than the number of borrowed copies.")
-            self.num_total = num_total
-            self.num_available = self.num_total - borrowed_copies
-        else:
-            raise ValueError("\nNumber of total copies must be a non-negative integer.")
+        borrowed_copies = self.num_total - self.num_available
+        if num_total < borrowed_copies:
+            raise ValueError("\nCannot set total copies less than the number of borrowed copies.")
+        self.num_total = num_total
+        self.num_available = self.num_total - borrowed_copies
 
     def set_publication_date(self, publication_date):
         """Set the publication date of the book."""
-        if isinstance(publication_date, str):
-            self.publication_date = publication_date.strip()
-        else:
-            raise ValueError("\nPublication date must be a string.")
+        self.publication_date = publication_date
         
     def get_title(self):
         """Return the title of the book."""
@@ -110,17 +91,9 @@ class BookList():
         """Store a new book instance in the collection."""
         self.books[book.id] = book
 
-    def remove_book(self, title): 
+    def remove_book(self, book_to_remove): 
         """Remove a book from the collection by title."""
-        title_lower = title.lower().strip()
-        books_to_remove = [book for book in self.books.values() if title_lower in (book.title.lower())]
-        if not books_to_remove:
-            print(f'\nNo books found with the title: {title}\n')
-            return
-        
-        book_to_remove = filter_selection(books_to_remove, title)
-
-        print(f"Removed book '{book_to_remove.title}' with ID: '{book_to_remove.id}'\n")
+        print(f"\nRemoved book '{book_to_remove.title}' with ID: '{book_to_remove.id}'\n")
         del self.books[book_to_remove.id]
 
     def find_book(self, search): 
@@ -143,55 +116,38 @@ class BookList():
     
 class User():
     def __init__(self, username, firstname, lastname, house_num, street_name, postcode, email, dob):
-        self.username = username.strip()
-        self.firstname = firstname.strip()
-        self.lastname = lastname.strip()
+        self.username = username
+        self.firstname = firstname
+        self.lastname = lastname
         self.house_num = house_num
-        self.street_name = street_name.strip()
-        self.postcode = postcode.strip()
-        self.email = email.strip()
-        self.dob = dob.strip()
+        self.street_name = street_name
+        self.postcode = postcode
+        self.email = email
+        self.dob = dob
 
     def set_username(self, username):
-        if not username:
-            raise ValueError("\nUsername cannot be empty")
-        self.username = username.strip()
+        self.username = username
 
     def set_firstname(self, firstname):
-        if not firstname:
-            raise ValueError("\nFirstname cannot be empty")
-        self.firstname = firstname.strip()
+        self.firstname = firstname
 
     def set_lastname(self, lastname):
-        if not lastname:
-            raise ValueError("\nLastname cannot be empty")
-        self.lastname = lastname.strip()
+        self.lastname = lastname
 
     def set_house_num(self, house_num):
-        if house_num.isnumeric() and int(house_num) >= 0:
-            self.house_num = house_num
-        else:
-            raise ValueError("\nHouse number must be a non negative integer")
+        self.house_num = house_num
 
     def set_street_name(self, street_name):
-        if not street_name:
-            raise ValueError("\nStreet name cannot be empty")
-        self.street_name = street_name.strip()
+        self.street_name = street_name
 
     def set_postcode(self, postcode):
-        if not postcode:
-            raise ValueError("\nPostcode cannot be empty")
-        self.postcode = postcode.strip()
+        self.postcode = postcode
 
     def set_email(self, email):
-        if not email:
-            raise ValueError("\nEmail cannot be empty")
-        self.email = email.strip()
+        self.email = email
 
     def set_dob(self, dob):
-        if not dob:
-            raise ValueError("\nDate of birth cannot be empty")
-        self.dob = dob.strip()
+        self.dob = dob
 
     def get_username(self):
         return self.username
@@ -260,24 +216,27 @@ class UserList():
 
 class Loans():
     def __init__(self):
-        self.loans = {} #dictionary with username as key and array of borrowed books as value
+        self.loans = {} #dictionary with user as key and array of borrowed books as value
     
-    def borrow_book(self, username, book):
+    def borrow_book(self, username, book, due_days = 14):
         """Allow a user to borrow a book if available."""
         try:
             if book.get_num_available() > 0:
                 if username not in self.loans:
                     self.loans[username] = []
                 # Set the due date to 14 days from today
-                due_date = datetime.now() + timedelta(days=14)
+                due_date = datetime.now() + timedelta(days=due_days)
                 loan_record = {'book': book, 'due_date': due_date}
                 self.loans[username].append(loan_record)
                 book.set_num_available(book.get_num_available() - 1)
-                print(f"\nBook '{book.title}' has been succesfully borrowed by user '{username.username}'. Due date is {due_date.strftime('%Y-%m-%d')}.")
+                print(f"\nBook '{book.title}' has been succesfully borrowed by user '{username.get_username()}'. Due date is {due_date.strftime('%Y-%m-%d')}.")
+                return
             else:
                 print(f"\nNo available copies of '{book.title}' to borrow.")
+                return
         except Exception as e:
             print(f"\nAn error occurred while borrowing the book: {e}")
+            return
     
     def return_book(self, username, book_id):
         """Allow a user to return a book."""
@@ -287,8 +246,9 @@ class Loans():
                     if loan['book'].id == book_id:
                         self.loans[username].remove(loan)
                         loan['book'].set_num_available(loan['book'].get_num_available() + 1)
-                        return f"Book '{loan['book'].get_title()}' returned."
-            print("\nBook not found in user's borrowed books.")
+                        print(f"Book '{loan['book'].get_title()}' succesfully returned by user '{username.get_username()}'")
+                    else:
+                        print("\nBook not found in user's borrowed books.")
         except Exception as e:
             print(f"\nAn error occurred while returning the book: {e}")
     
@@ -314,15 +274,15 @@ class Loans():
             overdue_found = False
             current_date = datetime.now()
             for username, loan_records in self.loans.items():
-                user = user_list.get_user(username)
-                if not user:
+                #user = user_list.users.get(username)
+                if not username:
                     continue  # Skip if user not found
                 for loan_record in loan_records:
                     if loan_record['due_date'] < current_date:
                         overdue_found = True
                         book = loan_record['book']
                         due_date_str = loan_record['due_date'].strftime('%Y-%m-%d')
-                        print(f"Username: {user.get_username()}, First Name: {user.get_firstname()}, Book: '{book.title}', Due Date: {due_date_str}")
+                        print(f"Username: {username.get_username()}, First Name: {username.get_firstname()}, Book: '{book.title}', Due Date: {due_date_str}")
             if not overdue_found:
                 print("No overdue books.\n")
                 return
@@ -341,7 +301,7 @@ class MainMenu:
     def display(self):
         print("\nWelcome to the Library System!")
         while True:
-            print("\nMain Menu:")
+            print_header("Main Menu:")
             print("1. Books")
             print("2. Users")
             print("3. Loans")
@@ -373,7 +333,7 @@ class BooksMenu:
     
     def display(self):
         while True:
-            print("\nBooks Menu:")
+            print_header("Books Menu:")
             print("1. Add a New Book")
             print("2. Remove a Book")
             print("3. Find a Book")
@@ -398,7 +358,7 @@ class BooksMenu:
             else:
                 print("\nInvalid input, please select a valid option.")
     
-    def add_book_interface(self, book_list):
+    def add_book_interface(self):
         """Interface to add a new book to the system."""
         print("\nAdd a New Book")
 
@@ -411,27 +371,26 @@ class BooksMenu:
 
         # Create and add the new book
         new_book = Book(title, author, year, publisher, num_copies, publication_date)
-        book_list.add_book(new_book)
+        self.book_list.add_book(new_book)
         print("\nNew book added successfully.")
 
 
     def remove_book_interface(self):
         print("\nRemove a Book")
         book = search_books(self.book_list, "Enter the name of the book you would like to remove:",  "No book found with title")
-        if book:
-            self.book_list.remove_book(book.title)
-            print("\nBook successfully removed.\n")
+        if isinstance(book, Book):
+            self.book_list.remove_book(book)
 
     def find_book_interface(self):
         print("\nSearch Books:")
-        book = search_books(self.book_list, "Enter the title, author, publisher, or publication date of the book you want to search:",  "No book found with title")
-        if book: print(f'\nBook found!\n{book}')
+        book = search_books(self.book_list, "Enter the title, author, publisher, or publication date of the book you want to search:",  "No book found with data", False)
+        if isinstance(book, Book): print(f'\nBook found!\n{book}')
 
     def modify_book_interface(self):
         """Modify a book's details."""
         print("\nBook List:")
         book = search_books(self.book_list, "Enter the name of the book you would like to modify:",  "No book found with title")
-        if book:
+        if isinstance(book, Book):
             print(f'\nCurrent details:\n{book}')
             while True:
                 print("\nWhat would you like to modify?")
@@ -439,31 +398,31 @@ class BooksMenu:
                 print("2. Author")
                 print("3. Year")
                 print("4. Publisher")
-                print("5. Number of Copies")
+                print("5. Total Number of Copies")
                 print("6. Exit")
 
                 try:
                     choice = input("\nEnter your choice (1-6):\n")
 
                     if choice == '1':
-                        new_title = input("\nEnter new title:\n") #whitespace shouldn't need stripping here as the class constructor already does this, same for inputs below
+                        new_title = get_input("\nEnter new title:\n", non_empty, "Title cannot be empty.")
                         book.set_title(new_title)
                         break
                     elif choice == '2':
-                        new_author = input("\nEnter new author:\n")
+                        new_author = get_input("\nEnter new author:\n", non_empty, "Author cannot be empty.")
                         book.set_author(new_author)
                         break
                     elif choice == '3':
-                        new_year = input("\nEnter new year:\n")
+                        new_year = int(get_input("\nEnter new year:\n", positive_int, "Year must be a positive integer."))
                         book.set_year(new_year)
                         break
                     elif choice == '4':
-                        new_publisher = input("\nEnter new publisher:\n")
+                        new_publisher = get_input("\nEnter new publisher:\n", non_empty, "Publisher cannot be empty.")
                         book.set_publisher(new_publisher)
                         break
                     elif choice == '5':
-                        new_copies = (input("\nEnter new number of copies:\n"))
-                        book.set_num_copies(new_copies)
+                        new_copies = int(get_input("\nEnter new number of copies:\n", non_negative_int, "Number of copies must be a non-negative integer."))
+                        book.set_num_total(new_copies)
                         break
                     elif choice == '6':
                         return
@@ -474,9 +433,9 @@ class BooksMenu:
             print("\nBook details updated successfully.\n")
             print(f'New details:\n{book}')
             
-    def count_book_interface(self, book_list):
+    def count_book_interface(self):
         print("\nBook Count:")
-        print(f'There are {book_list.get_total_books()} total books in the library system')
+        print(f'There are {self.book_list.get_total_books()} total books in the library system')
 
     
 class UsersMenu:
@@ -486,7 +445,7 @@ class UsersMenu:
     def display(self):
         """Sub-menu for Users-related operations."""
         while True:
-            print("\nUsers Menu:")
+            print_header("Users Menu:")
             print("1. Add a New User")
             print("2. Remove a User")
             print("3. Modify a User")
@@ -496,15 +455,15 @@ class UsersMenu:
 
             choice = input("\nEnter your choice (1-5):\n").strip()
             if choice == '1':
-                self.add_user_interface(self.user_list)
+                self.add_user_interface()
             elif choice == '2':
-                self.remove_user_interface(self.user_list)
+                self.remove_user_interface()
             elif choice == '3':
-                self.modify_user_interface(self.user_list)
+                self.modify_user_interface()
             elif choice == '4':
-                self.show_user_details_interface(self.user_list)
+                self.show_user_details_interface()
             elif choice == '5':
-                self.count_user_interface(self.user_list)
+                self.count_user_interface()
             elif choice == '6':
                 print("\nReturning to the Main Menu.")
                 break
@@ -512,12 +471,12 @@ class UsersMenu:
                 print("\nInvalid input, please select a valid option.")
     
         
-    def add_user_interface(self, user_list):
+    def add_user_interface(self):
         """Interface to add a new user to the system."""
         print("\nAdd a New User")
 
         def unique_username(x):
-            return non_empty(x) and not user_list.get_user(x)
+            return non_empty(x) and not self.user_list.get_user(x)
 
         username = get_input("Enter the username:\n", unique_username, "Username cannot be empty or already exists.")
         firstname = get_input("Enter the first name:\n", non_empty, "First name cannot be empty.")
@@ -525,24 +484,24 @@ class UsersMenu:
         house_num = int(get_input("Enter the house number:\n", non_negative_int, "House number must be a non-negative integer."))
         street_name = get_input("Enter the street name:\n", non_empty, "Street name cannot be empty.")
         postcode = get_input("Enter the postcode:\n", non_empty, "Postcode cannot be empty.")
-        email = get_input("Enter the email address:\n", valid_email, "Email cannot be empty.")
+        email = get_input("Enter the email address:\n", valid_email, "Email cannot be empty and must be formatted correctly.")
         dob = get_input("Enter the date of birth (YYYY-MM-DD):\n", valid_date, "Invalid date format. Please enter date as YYYY-MM-DD.")
         
         # Create and add the new book
         new_book = User(username, firstname, lastname, house_num, street_name, postcode, email, dob)
-        user_list.add_user(new_book)
+        self.user_list.add_user(new_book)
         print("\nNew book added successfully.")
 
-    def remove_user_interface(self, user_list):
+    def remove_user_interface(self):
         print("\nRemove a User")
         username = input("\nEnter the first name of the user you want to remove:\n").strip()
-        user_list.remove_user(username)
+        self.user_list.remove_user(username)
 
-    def modify_user_interface(self, user_list):
+    def modify_user_interface(self):
         """Modify a user's details."""
         print("\nUser List:")
         user = search_users(self.user_list, "Enter the username of the user you would like to modify:",  "No user found with username")
-        if user:
+        if isinstance(user, User):
             print(f'\nCurrent details:\n{user}')
             while True:
                 print("\nWhat would you like to modify?")
@@ -557,23 +516,23 @@ class UsersMenu:
                     choice = input("\nEnter your choice (1-6): \n").strip()
 
                     if choice == '1':
-                        new_firstname = input("\nEnter new first name:\n")
+                        new_firstname = get_input("\nEnter new first name:\n", non_empty, "First name cannot be empty.")
                         user.set_firstname(new_firstname)
                         break
                     elif choice == '2':
-                        new_surname = input("\nEnter new surname:\n")
+                        new_surname = get_input("\nEnter new last name:\n", non_empty, "Last name cannot be empty.")
                         user.set_lastname(new_surname)
                         break
                     elif choice == '3':
-                        new_house_number = input("\nEnter new house number:\n")
+                        new_house_number = int(get_input("\nEnter new house number:\n", non_negative_int, "House number must be a non-negative integer."))
                         user.set_house_num(new_house_number)
                         break
                     elif choice == '4':
-                        new_street_name = input("\nEnter new street name:\n")
+                        new_street_name = get_input("\nEnter new street name:\n", non_empty, "Street name cannot be empty.")
                         user.set_street_name(new_street_name)
                         break
                     elif choice == '5':
-                        new_postcode = input("\nEnter new postcode:\n")
+                        new_postcode = get_input("\nEnter new postcode:\n", non_empty, "Postcode cannot be empty.")
                         user.set_postcode(new_postcode)
                         break
                     elif choice == '6':
@@ -586,14 +545,14 @@ class UsersMenu:
             print("\nUser details updated successfully.\n")
             print(f'New details:\n{user}')
 
-    def show_user_details_interface(self, user_list):
+    def show_user_details_interface(self):
         print("\nSearch User Details:")
         user = search_users(self.user_list, "Enter the username of the user you would like to display:",  "No user found with username", False)
-        if user: print(f'\nUser found!\n{user}')
+        if isinstance(user, User): print(f'\nUser found!\n{user}')
         
-    def count_user_interface(self, user_list):
+    def count_user_interface(self):
         print("\nUser Count:")
-        print(f'There are {user_list.get_total_users()} total users in the library system')
+        print(f'There are {self.user_list.get_total_users()} total users in the library system')
 
 
 class LoansMenu:
@@ -605,7 +564,7 @@ class LoansMenu:
 
     def display(self):
         while True:
-            print("\nLoans Menu:")
+            print_header("Loans Menu:")
             print("1. Borrow a Book")
             print("2. Return a Book")
             print("3. Display User's Borrowed Books")
@@ -630,46 +589,44 @@ class LoansMenu:
     def borrow_book_interface(self):
         """Interface for borrowing a book."""
         print("\nBorrow a Book")
-
-        username = search_users(self.user_list)
-        book = search_books(self.book_list, "Enter the name of the book you would like to borrow", "No book found with title")
-
-        if book: self.book_loans.borrow_book(username, book)
+        
+        username = search_users(self.user_list, "Enter the username of the user that would like to borrow a book:",  "No user found with username", False)
+        if isinstance(username, User): 
+            book = search_books(self.book_list, "Enter the name of the book you would like to borrow", "No book found with title")
+            if isinstance(book, Book): self.book_loans.borrow_book(username, book)
         
 
     def return_book_interface(self):
         """Interface for returning a book."""
         print("\nReturn a Book")
 
-        username = search_users(self.user_list)
+        username = search_users(self.user_list, "Enter the username of the user that would like to return a book:",  "No user found with username", False)
+        if isinstance(username, User): 
+            self.book_loans.print_borrowed_books(username)
+            borrowed_loans = self.book_loans.loans.get(username, [])
 
-        self.book_loans.print_borrowed_books(username)
-        
-        borrowed_loans = self.book_loans.loans.get(username, [])
-
-        #this book selection functionality overlaps with the filter selection method - maybe they could be combined
-        while True:
-            choice_input = input("\nEnter the number of the book you want to return (or type 'back' to cancel):\n").strip()
-            if choice_input.lower() == 'back':
-                print("\nReturning to the Loans Menu.")
-                return
-            try:
-                choice = int(choice_input)
-                if 1 <= choice <= len(borrowed_loans):
-                    loan_record = borrowed_loans[choice - 1]
-                    self.book_loans.return_book(username, loan_record['book'].id)
-                    break
-                else:
-                    print("Invalid selection. Please enter a valid number.")
-            except ValueError:
-                print("Invalid input. Please enter a number.")
-
+            if borrowed_loans:
+                while True:
+                    choice_input = input("\nEnter the number of the book you want to return (or type 'back' to cancel):\n").strip()
+                    if choice_input.lower() == 'back':
+                        print("\nReturning to the Loans Menu.")
+                        return
+                    try:
+                        choice = int(choice_input)
+                        if 1 <= choice <= len(borrowed_loans):
+                            loan_record = borrowed_loans[choice - 1]
+                            self.book_loans.return_book(username, loan_record['book'].id)
+                            break
+                        else:
+                            print("Invalid selection. Please enter a valid number.")
+                    except ValueError:
+                        print("Invalid input. Please enter a number.")
 
     def show_count_loans_interface(self):
         """Display all books borrowed by a specific user."""
         print("\nDisplay User's Borrowed Books")
 
-        username = search_users(self.user_list)
+        username = search_users(self.user_list, "Enter the username of the user that would like to display",  "No user found with username", False)
         self.book_loans.print_borrowed_books(username)
 
         # Display the total number of borrowed books
@@ -687,21 +644,42 @@ def init_library(): #this could be done with a json file
     user_list = UserList()
     book_loans = Loans()
 
-    book_list.add_book(Book("The Hobbit", "John Doe", 1960, "Books Inc", 12, "1960-02-24"))
-    book_list.add_book(Book("The Hobbit", "Bob Marley", 1960, "Cooks Inc", 12, "1990-06-24"))
-    book_list.add_book(Book("James Bond", "John Doe", 1930, "Blob Corp", 5, "1930-01-12"))
-    book_list.add_book(Book("1984", "Max Smith", 1930, "Big Publishing", 5, "2008-09-07"))
+    # Adding books
+    book_list.add_book(Book("The Great Gatsby", "F. Scott Fitzgerald", 1925, "Charles Scribner's Sons", 8, "1925-04-10"))
+    book_list.add_book(Book("To Kill a Mockingbird", "Harper Lee", 1960, "J.B. Lippincott & Co.", 15, "1960-07-11"))
+    book_list.add_book(Book("Pride and Prejudice", "Jane Austen", 1813, "T. Egerton, Whitehall", 10, "1813-01-28"))
+    book_list.add_book(Book("Moby Dick", "Herman Melville", 1851, "Harper & Brothers", 5, "1851-11-14"))
+    book_list.add_book(Book("Crime and Punishment", "Leo Tolstoy", 1869, "The Russian Messenger", 9, "1869-01-01"))
+    book_list.add_book(Book("Crime and Punishment", "Fyodor Dostoevsky", 1866, "The Russian Messenger", 12, "1866-01-01"))
 
-    user_list.add_user(User("raringgarlic118", "Tim", "Lee", 12, "Park avenue", "BO21HK", "timlee@email.com","2000-01-01"))
-    user_list.add_user(User("blobfish772", "Tim", "Lee", 1, "river avenue", "OJ6XKG", "timlee2@email.com","2002-11-31"))
-    user_list.add_user(User("firequake122", "Bob", "Smith", 1, "birch street", "YTH87P", "bobsmith122@email.com","1992-06-19"))
+    # Adding users
+    user_list.add_user(User("oceanwave927", "Alice", "Johnson", 3, "Maple Street", "AB12CD", "alice.johnson@email.com", "1990-03-15"))
+    user_list.add_user(User("skydreamer503", "Charlie", "Brown", 4, "Elm Avenue", "XY34ZF", "charlie.brown@email.com", "1985-09-22"))
+    user_list.add_user(User("mountainpeak334", "Dave", "Wilson", 2, "Pine Road", "LK76HJ", "dave.wilson@email.com", "2001-12-08"))
+    user_list.add_user(User("forestlight817", "Eve", "Green", 6, "Cedar Drive", "PO98YU", "eve.green@email.com", "1995-05-30"))
+    user_list.add_user(User("sunsetblaze411", "Frank", "Miller", 1, "Oak Lane", "MN45QR", "frank.miller@email.com", "1988-11-11"))
+    user_list.add_user(User("starlitpath729", "Frank", "Evans", 2, "Willow Court", "CD23EF", "grace.evans@email.com", "1993-07-24"))
+
+    book_loans.borrow_book(user_list.users.get("oceanwave927"), book_list.find_book("The Great Gatsby")[0], -5)
+    book_loans.borrow_book(user_list.users.get("oceanwave927"), book_list.find_book("To Kill a Mockingbird")[0], 2)
+    book_loans.borrow_book(user_list.users.get("mountainpeak334"), book_list.find_book("Moby Dick")[0], -9)
+    book_loans.borrow_book(user_list.users.get("sunsetblaze411"), book_list.find_book("The Great Gatsby")[0], -3)
+    book_loans.borrow_book(user_list.users.get("skydreamer503"), book_list.find_book("Pride and Prejudice")[0], 7)
+
 
     return book_list, user_list, book_loans
+
 
 def main():
     book_list, user_list, book_loans = init_library()
     main_menu = MainMenu(book_list, user_list, book_loans)
+    
     main_menu.display()
+
+def print_header(title):
+    print("\n" + "="*len(title))
+    print(title)
+    print("="*len(title) + "\n")
 
 def filter_selection(items, search_term): #method to handle logic for search queries with multiple items
         if len(items) == 1:
@@ -718,15 +696,15 @@ def filter_selection(items, search_term): #method to handle logic for search que
                     selected_item = items[choice - 1]
                     return selected_item
                 else:
-                    return "Invalid selection. No item selected." #this may need a while loop to properly take input
+                    print("Invalid selection. No item selected.") #this may need a while loop to properly take input
             except ValueError:
-                return "Invalid input. Please enter a valid number."
+                print("Invalid input. Please enter a valid number.")
 
 def search_users(user_list, prompt, error_message, show_users = True):
     while True:
         if(show_users): 
             for user_id, user in list(user_list): print(user)
-        username = input(f'\n{prompt}\n').strip()
+        username = get_input(f'\n{prompt}\n', non_empty, "Search cannot be empty!")
         user = user_list.users.get(username)
 
         if not user:
@@ -735,10 +713,11 @@ def search_users(user_list, prompt, error_message, show_users = True):
         else:
             return user
 
-def search_books(book_list, prompt, error_message):
+def search_books(book_list, prompt, error_message, show_books = True):
     while True:
-        for book_id, book in list(book_list): print(book)
-        book_name = input(f'\n{prompt}\n').strip()
+        if(show_books): 
+            for book_id, book in list(book_list): print(book)
+        book_name = get_input(f'\n{prompt}\n', non_empty, "Search cannot be empty!")
         books = book_list.find_book(book_name)
         if isinstance(books[0], str): 
             print(f"\n{error_message} '{book_name}'")
@@ -747,7 +726,6 @@ def search_books(book_list, prompt, error_message):
             book = filter_selection(books, book_name)
             return book
             
-#I could make this into a seperate module for clarity
 def get_input(prompt, validation_func, error_message):
         while True:
             value = input(prompt).strip()

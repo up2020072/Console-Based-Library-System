@@ -27,7 +27,6 @@ class Book {
     author
     year
     publisher
-    num_avaialble
     num_total
     num_available
     publication_date
@@ -130,6 +129,7 @@ class LoansMenu {
     show_overdue_loans_interface()
     init_library()
     main()
+    print_header()
     filter_selection()
     search_users()
     search_books()
