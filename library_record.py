@@ -974,11 +974,7 @@ non_negative_int = lambda x: x.isdigit() and int(x) >= 0
     
 def valid_date(x):
     """Validate if a string is a valid date in 'YYYY-MM-DD' format."""
-    try:
-        datetime.strptime(x, '%Y-%m-%d')
-        return True
-    except ValueError:
-        return False
+    return re.match(r"^(16|20)\d{2}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$", x) is not None
 
 def valid_email(x):
     """Validate if a string is a properly formatted email."""
