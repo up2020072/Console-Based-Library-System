@@ -125,7 +125,7 @@ class BookList:
 
     def remove_book(self, book_to_remove): 
         """
-        Remove a book from the collection by its ID.
+        Remove a book from the collection by its title.
         
         Args:
             book_to_remove (Book): The book instance to remove.
